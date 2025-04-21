@@ -7,6 +7,7 @@ import datetime
 import ocrmypdf
 from ocrmypdf import exceptions as ocrmypdf_exceptions
 from openai import OpenAI
+import google.generativeai as genai
 from pgpt_python.client import PrivateGPTApi
 from pdfminer.high_level import extract_text
 
@@ -51,7 +52,10 @@ def initialize_privateai_client():
                            httpx_client = httpx_client)
     logging.debug(f"Private API health {client.health.health()}")
     
-    
+def initialize_gemini_client(api_key):
+    global client
+    genai.configure(api_key=api_key)
+    client = genai.GenerativeModel(model_name="gemini-2,0-flash")
 
 def initialize_openai_client(api_key):
     global client
@@ -138,6 +142,12 @@ def get_prompt_text():
     txt += os.getenv("PROMPT_EXTENSION", "")
     return txt.strip()
 
+def get_gemini_content(text: str):
+    global client
+    prompt = get_prompt_text() + "\n\n" + "Extract the information from the text:\n\n" + text
+    response = client.generate_content([prompt])  # Gemini expects a list of prompts
+    return response.text
+
 def get_open_ai_content(text: str):
     """call the public openai API using your API Key"""
     
@@ -187,13 +197,22 @@ def process_text_with_any_ai(text: str) -> Dict[str, str]:
             response = get_private_ai_content(text)
             model = os.getenv("PRIVATEAI_POST_PROCESSOR").split(',')[0]
             response = post_process_private_ai_response(response, model)
+        elif isinstance(client, genai.GenerativeModel):  # Gemini client
+            response = get_gemini_content(text)
+            #  Adapt this part based on how Gemini returns the data.
+            #  You might need to parse the text to extract JSON.
+            try:
+                parsed_response = json.loads(response) 
+            except json.JSONDecodeError:
+                logging.error("Gemini response is not valid JSON.")
+                return {"company_name": UNKNOWN_VALUE, "document_date": DEFAULT_DATE, "document_type": UNKNOWN_VALUE}
         else:                
             logging.error(f'Unknown API client: {type(client)}')
-            raise Exception('Unknown API client: {type(client)}')
-
+            raise Exception('Unknown API client')
 
         logging.info(f'Extract Response: {response}')
-        parsed_response = json.loads(response)
+        if not isinstance(client, genai.GenerativeModel): # If not Gemini, parse as JSON
+            parsed_response = json.loads(response)
         logging.info(f'API Extract Response: {parsed_response}')
 
         company_name = parsed_response.get('company_name', UNKNOWN_VALUE)
