@@ -40,6 +40,16 @@ def set_env_vars(env_vars):
 def initialize_privateai_client():
     global client
     
+        # Add a check for the environment variable here
+    privateai_enabled_str = os.getenv('PRIVATEAI_ENABLED', 'false').lower()
+    privateai_enabled = privateai_enabled_str == 'true'
+
+    if not privateai_enabled:
+        logging.info("PrivateAI client is disabled in environment settings.")
+        client = None # Ensure client is None if disabled
+        return # Exit the function if disabled
+
+    logging.info("Initializing PrivateAI client...")
     # initialize Defaults
     scheme = os.getenv('PRIVATEAI_SCHEME', 'http')
     host = os.getenv('PRIVATEAI_HOST',"localhost")
@@ -47,10 +57,19 @@ def initialize_privateai_client():
     timeout = os.getenv('PRIVATEAI_TIMEOUT',720)
     base_url = f'%s://%s:%s' % (scheme, host, port)        
     # initialize client with default
-    httpx_client = httpx.Client(timeout = timeout)
-    client = PrivateGPTApi(base_url = base_url, 
-                           httpx_client = httpx_client)
-    logging.debug(f"Private API health {client.health.health()}")
+    try:
+        httpx_client = httpx.Client(timeout = timeout)
+        client = PrivateGPTApi(base_url = base_url,
+                               httpx_client = httpx_client)
+        # The health check itself might cause the ConnectError,
+        # consider if you want to do this conditionally or handle the exception here
+        logging.debug(f"Private API health {client.health.health()}")
+    except httpx.ConnectError as e:
+        logging.error(f"Failed to connect to PrivateAI client at {base_url}: {e}")
+        client = None # Set client to None if connection fails
+        # Depending on desired behavior, you might want to re-raise the exception
+        # or allow the script to continue with client = None.
+        # For now, we'll just log and set client to None.
     
 def initialize_gemini_client(api_key):
     global client
