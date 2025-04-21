@@ -2,8 +2,15 @@ import os
 import sys
 import logging
 from dotenv import load_dotenv
-from pdf_processor import process_pdf, PDF_EXTENSION, initialize_openai_client, set_env_vars
-from pdf_processor import initialize_privateai_client
+from pdf_processor import (
+    process_pdf,
+    PDF_EXTENSION,
+    initialize_openai_client,
+    set_env_vars,
+    initialize_privateai_client,
+    initialize_gemini_client, # Add initialize_gemini_client here
+    initialize_api_client # Assuming initialize_api_client is also in pdf_processor and used
+)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
