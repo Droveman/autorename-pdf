@@ -9,7 +9,7 @@ from pdf_processor import (
     set_env_vars,
     initialize_privateai_client,
     initialize_gemini_client, # Add initialize_gemini_client here
-    initialize_api_client # Assuming initialize_api_client is also in pdf_processor and used
+   # initialize_api_client Assuming initialize_api_client is also in pdf_processor and used
 )
 
 # Configure logging
