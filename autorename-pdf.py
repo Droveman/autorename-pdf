@@ -8,7 +8,7 @@ from pdf_processor import (
     initialize_openai_client,
     set_env_vars,
     initialize_privateai_client,
-    initialize_gemini_client, # Add initialize_gemini_client here
+    initialize_gemini_client,
    # initialize_api_client Assuming initialize_api_client is also in pdf_processor and used
 )
 
@@ -30,7 +30,9 @@ json_path = os.path.join(current_directory, 'harmonized-company-names.json')
 # Load environment variables from the .env file
 load_dotenv(env_path)
 env_vars = {
+    'AI_PROVIDER' : os.getenv('AI_PROVIDER'),
     'OPENAI_MODEL': os.getenv('OPENAI_MODEL'),
+    'GEMINI_API_KEY': os.getenv('GEMINI_API_KEY'),
     'OCR_LANGUAGES': os.getenv('OCR_LANGUAGES'),
     'OUTPUT_LANGUAGE': os.getenv('OUTPUT_LANGUAGE'),
     'PDF_INCOMING_INVOICE': os.getenv('PDF_INCOMING_INVOICE'),
@@ -52,6 +54,7 @@ ai_provider = os.getenv("AI_PROVIDER", "openai")  # Default to openai
 
 if ai_provider.lower() == "gemini":
     gemini_api_key = os.getenv("GEMINI_API_KEY")
+    logging.info("Gemini API key used")
     if not gemini_api_key:
         logging.error("GEMINI_API_KEY not found in environment variables.")
         sys.exit(1)
@@ -61,6 +64,7 @@ elif ai_provider.lower() == "privateai":
     initialize_privateai_client()
 else:  # Default to openai
     initialize_openai_client(openai_api_key)
+    logging.info("OpenAI API key used")
 
 # Initialize OpenAI client
 openai_api_key = os.getenv("OPENAI_API_KEY")
