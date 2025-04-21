@@ -37,6 +37,17 @@ def set_env_vars(env_vars):
     for key, value in env_vars.items():
         os.environ[key] = value
 
+    
+def initialize_gemini_client(api_key):
+    global client
+    genai.configure(api_key=api_key)
+    client = genai.GenerativeModel(model_name="gemini-2,0-flash")
+
+def initialize_openai_client(api_key):
+    global client
+    client = OpenAI(api_key=api_key)
+
+
 def initialize_privateai_client():
     global client
     
@@ -70,15 +81,6 @@ def initialize_privateai_client():
         # Depending on desired behavior, you might want to re-raise the exception
         # or allow the script to continue with client = None.
         # For now, we'll just log and set client to None.
-    
-def initialize_gemini_client(api_key):
-    global client
-    genai.configure(api_key=api_key)
-    client = genai.GenerativeModel(model_name="gemini-2,0-flash")
-
-def initialize_openai_client(api_key):
-    global client
-    client = OpenAI(api_key=api_key)
 
 class DocumentResponse(BaseModel):
     company_name: str = Field(..., description="Name of the company in the document")
