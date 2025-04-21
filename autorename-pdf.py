@@ -41,6 +41,19 @@ env_vars = {
 
 set_env_vars(env_vars)
 
+ai_provider = os.getenv("AI_PROVIDER", "openai")  # Default to openai
+
+if ai_provider.lower() == "gemini":
+    gemini_api_key = os.getenv("GEMINI_API_KEY")
+    if not gemini_api_key:
+        logging.error("GEMINI_API_KEY not found in environment variables.")
+        sys.exit(1)
+    initialize_gemini_client(gemini_api_key)
+elif ai_provider.lower() == "privateai":
+    logging.info(f"PrivateAI client Enabled: %s" % privateai_enabled)
+    initialize_privateai_client()
+else:  # Default to openai
+    initialize_openai_client(openai_api_key)
 
 # Initialize OpenAI client
 openai_api_key = os.getenv("OPENAI_API_KEY")
